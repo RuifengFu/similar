@@ -193,18 +193,17 @@ where
             (DiffTag::Delete, DiffTag::Equal) => {
                 // check common suffix for the amount we can shift
                 let suffix_len =
-                    common_suffix_len(old, prev_op.old_range(), new, this_op.new_range());
+                    common_suffix_len(old, prev_op.old_range(), old, this_op.old_range());
                 if suffix_len != 0 {
                     if let Some(DiffTag::Equal) = ops.get(pointer + 1).map(|x| x.tag()) {
                         ops[pointer + 1].grow_left(suffix_len);
                     } else {
-                        let old_range = prev_op.old_range();
                         ops.insert(
                             pointer + 1,
                             DiffOp::Equal {
-                                old_index: old_range.end - suffix_len,
-                                new_index: this_op.new_range().end - suffix_len,
-                                len: old_range.len() - suffix_len,
+                                old_index: prev_op.old_range().end - suffix_len,
+                                new_index: this_op.new_range().end,
+                                len: suffix_len,
                             },
                         );
                     }
@@ -298,7 +297,7 @@ where
             (DiffTag::Delete, DiffTag::Equal) => {
                 // check common suffix for the amount we can shift
                 let prefix_len =
-                    common_prefix_len(old, next_op.old_range(), new, this_op.new_range());
+                    common_prefix_len(old, next_op.old_range(), old, this_op.old_range());
                 if prefix_len > 0 {
                     if let Some(DiffTag::Equal) = pointer
                         .checked_sub(1)
